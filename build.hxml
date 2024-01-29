@@ -1,0 +1,5 @@
+--js dummy.js
+--no-output
+--library hxnodejs
+--class-path library
+nodejs.WinReg
