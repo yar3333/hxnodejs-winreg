@@ -1,15 +1,24 @@
 package nodejs;
 
+import haxe.extern.EitherType;
 import js.lib.Error;
-import js.node.ChildProcess;
 using StringTools;
+
+typedef ExecSync = (command:String, ?options:js.node.ChildProcess.ChildProcessSpawnSyncOptions) -> EitherType<String, js.node.Buffer>;
 
 class WinReg
 {
+    var execSync : ExecSync;
+
+    public function new(execSync:ExecSync)
+    {
+        this.execSync = execSync;
+    }
+
     /**
         `fullKey` example: "HKLM:/Software/MyProject/MyRegistryKey"
     **/
-    public static function getKeyValue(fullKey:String) : String
+    public function getKeyValue(fullKey:String) : String
     {
         fullKey = fullKey.replace("/", "\\");
 
@@ -37,9 +46,10 @@ class WinReg
         return r;
     }
 
-    private static function runPowerShell(script:String) : String
+    private function runPowerShell(script:String) : String
     {
-        var r = ChildProcess.execSync(script, { shell: 'powershell.exe' });
+        var r = execSync(script, { shell: 'powershell.exe' });
+        if (!Std.isOfType(r, String)) r = (cast r : js.node.Buffer).toString();
         if (r == "---NOT_FOUND") return null;
         if (r.startsWith("---ERROR:")) throw new Error(r);
         return r;
